@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Calorie Snap
 
-## Getting Started
+Mobile-first PWA that logs your food's calories & macros automatically. Snap a
+photo or describe a meal in the chat box; **Gemini 3.5 Flash (via OpenRouter)**
+estimates calories + protein/carbs/fat and appends it to your daily log.
 
-First, run the development server:
+- 📸 **Capture** — full-screen live camera, tap the shutter to log.
+- ✍️ **Manual** — chat box with a text description + photo upload.
+- 🔵 **Rings** — calorie & protein activity rings, with carbs/fat bars.
+- 🎯 **Goals** — TDEE-based targets (Mifflin-St Jeor) from your profile, with
+  manual overrides. Workout time tags meals as pre / post-workout.
+- 🍽️ **Auto-naming & meal type** — the AI names each meal and classifies it
+  (breakfast / lunch / dinner / snack / pre-workout…) from the time of day.
+- 📅 **History** — date picker to browse the log for any day.
+- ✏️ **Edit / delete** any entry.
+- 🔒 **Private** — email + password login (Convex Auth), restricted to an
+  allowlisted email and enforced server-side, so the link alone exposes nothing.
+
+## Stack
+
+- **Next.js 16** (App Router, TypeScript) + Tailwind v4 + shadcn/ui (Base UI)
+- **Convex** — reactive DB, file storage (meal photos), serverless actions
+- **OpenRouter SDK** (`@openrouter/sdk`) → `google/gemini-3.5-flash`
+  (vision + structured JSON output)
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 1. OpenRouter key
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The key is read **inside Convex actions** (`convex/ai.ts`), which run on the
+Convex deployment — so it must be set on Convex, not just in `.env.local`:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npx convex env set OPENROUTER_API_KEY sk-or-v1-xxxxx   # https://openrouter.ai/keys
+```
 
-## Learn More
+`.env.local` holds Convex's own vars (managed by the CLI) plus an
+`OPENROUTER_API_KEY` placeholder for reference.
 
-To learn more about Next.js, take a look at the following resources:
+### 2. Auth allowlist
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Login uses **Convex Auth** (password). `npx @convex-dev/auth` already set
+`SITE_URL`, `JWT_PRIVATE_KEY`, and `JWKS`. Restrict who can sign up by setting an
+email allowlist (enforced server-side in `convex/auth.ts`):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npx convex env set ALLOWED_EMAILS you@example.com   # comma-separated for more
+```
 
-## Deploy on Vercel
+On first launch, open the app and **Sign up** with that email to create your
+account. Anyone else is rejected by the server.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 3. Run (two processes)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npx convex dev    # backend: pushes functions, watches convex/
+pnpm dev          # frontend: http://localhost:3000
+```
+
+The AI runs server-side in Convex, so `OPENROUTER_API_KEY` is never exposed to
+the browser.
+
+## Code map
+
+- `convex/schema.ts` — `meals` + `settings` tables.
+- `convex/ai.ts` — `analyzeImage` / `analyzeText` actions call OpenRouter, then
+  write results via the internal `meals.insertMeal` mutation.
+- `convex/meals.ts` — `generateUploadUrl`, `listMeals`, `updateMeal`, `deleteMeal`.
+- `convex/settings.ts` — single-row profile/goals.
+- `convex/auth.ts` — Convex Auth (Password) with email allowlist. All `meals` /
+  `settings` functions require an authenticated user.
+- `src/lib/targets.ts` — TDEE math + override resolution.
+- `src/lib/meals.ts` — day grouping, totals, macro split helpers.
+- `src/components/*` — rings, date nav (calendar), camera, manual entry, settings.
+
+## PWA
+
+Installable: web manifest + icons in `public/`, service worker (`public/sw.js`)
+registered in production. Add to Home Screen on iOS/Android for a standalone app.
