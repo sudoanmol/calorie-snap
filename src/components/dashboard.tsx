@@ -6,6 +6,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { Camera, LogOut, PencilLine, Settings } from "lucide-react";
 import { api } from "../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { dayKey, sumTotals } from "@/lib/meals";
 import { resolveTargets } from "@/lib/targets";
 import { DateNav } from "@/components/date-nav";
@@ -41,6 +42,7 @@ export function Dashboard() {
       <header className="flex items-center justify-between px-4 py-3">
         <h1 className="text-xl font-semibold tracking-tight">Calorie Snap</h1>
         <div className="flex items-center gap-1">
+          <ThemeToggle />
           <Button
             variant="ghost"
             size="icon"
@@ -85,7 +87,7 @@ export function Dashboard() {
 
       {/* Bottom action bar */}
       <div
-        className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-md border-t border-white/8 bg-background/80 px-4 pt-3 backdrop-blur-lg"
+        className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-md border-t border-border bg-background/80 px-4 pt-3 backdrop-blur-lg"
         style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
       >
         <div className="grid grid-cols-2 gap-3">

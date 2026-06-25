@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import { ConvexClientProvider } from "./ConvexClientProvider";
+import { ThemeProvider } from "@/components/theme-provider";
 import { ServiceWorkerRegister } from "@/components/sw-register";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -26,7 +27,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0a",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -40,11 +44,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} h-full antialiased dark`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${geistSans.variable} h-full antialiased`}
+    >
       <body className="bg-background text-foreground min-h-full overscroll-none font-sans">
-        <ConvexClientProvider>{children}</ConvexClientProvider>
-        <ServiceWorkerRegister />
-        <Toaster position="top-center" richColors />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ConvexClientProvider>{children}</ConvexClientProvider>
+          <ServiceWorkerRegister />
+          <Toaster position="top-center" richColors />
+        </ThemeProvider>
       </body>
     </html>
   );

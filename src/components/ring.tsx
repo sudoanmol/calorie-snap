@@ -20,7 +20,7 @@ export function Ring({
   size = 160,
   stroke = 14,
   color,
-  trackColor = "rgba(255,255,255,0.08)",
+  trackColor = "color-mix(in oklab, var(--foreground) 12%, transparent)",
   className,
   children,
 }: RingProps) {

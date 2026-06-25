@@ -241,7 +241,7 @@ export function SettingsDialog({
           </div>
 
           {/* Targets */}
-          <div className="flex flex-col gap-2 rounded-xl border border-white/8 bg-white/[0.03] p-3">
+          <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted/40 p-3">
             <p className="text-sm font-medium">Daily targets</p>
             <p className="text-xs text-muted-foreground">
               Calculated from your profile (TDEE). Leave blank to use the

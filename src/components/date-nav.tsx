@@ -36,7 +36,7 @@ export function DateNav({
       </Button>
 
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger className="flex flex-col items-center rounded-lg px-3 py-1 transition-colors active:bg-white/5">
+        <PopoverTrigger className="flex flex-col items-center rounded-lg px-3 py-1 transition-colors active:bg-accent">
           <span className="text-lg font-semibold leading-tight">
             {dayLabel(day)}
           </span>

@@ -7,6 +7,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { toast } from "sonner";
 
 export function SignIn() {
@@ -33,7 +34,10 @@ export function SignIn() {
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center gap-8 px-6">
+    <div className="relative mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center gap-8 px-6">
+      <div className="absolute right-4 top-4">
+        <ThemeToggle />
+      </div>
       <div className="flex flex-col items-center gap-3 text-center">
         <Image src="/icon.svg" alt="" width={64} height={64} className="rounded-2xl" />
         <div>

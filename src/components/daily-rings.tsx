@@ -32,7 +32,7 @@ function MacroBar({
           <span className="text-muted-foreground"> / {round(goal)} g</span>
         </span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-white/8">
+      <div className="h-2 overflow-hidden rounded-full bg-muted">
         <div
           className="h-full rounded-full transition-[width] duration-700 ease-out"
           style={{ width: `${pct}%`, backgroundColor: color }}

@@ -34,7 +34,7 @@ export function MealCard({ meal }: { meal: Meal }) {
   }
 
   return (
-    <div className="flex gap-3 rounded-2xl border border-white/8 bg-white/[0.03] p-3">
+    <div className="flex gap-3 rounded-2xl border border-border bg-muted/40 p-3">
       {meal.imageUrl ? (
         <Image
           src={meal.imageUrl}
@@ -45,7 +45,7 @@ export function MealCard({ meal }: { meal: Meal }) {
           unoptimized
         />
       ) : (
-        <div className="grid size-18 shrink-0 place-items-center rounded-xl bg-white/5 text-muted-foreground">
+        <div className="grid size-18 shrink-0 place-items-center rounded-xl bg-muted text-muted-foreground">
           <MessageSquareText className="size-6" />
         </div>
       )}
