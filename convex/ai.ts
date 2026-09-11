@@ -46,7 +46,7 @@ Rules:
 - "mealType": classify based on the provided local time of day and the user's workout time. Use exactly one of: "Breakfast", "Lunch", "Dinner", "Morning snack", "Afternoon snack", "Late night snack", "Pre-workout", "Post-workout". If the meal is within ~90 min before the workout time use "Pre-workout"; within ~90 min after, "Post-workout"; otherwise pick by time of day.
 - "description": one concise sentence describing what was eaten and rough portions.
 - Macros ("protein", "carbs", "fat") are in GRAMS. "calories" in kcal.
-- Break the meal into "items" (one per distinct food). The top-level calories/macros MUST equal the sum of the items.
+- Break the meal into "items" (one per distinct food or drink). Always include this array, even for a single food. Each item needs its own label, calories, and macros. The top-level calories/macros MUST equal the sum of the items.
 - Give realistic best-effort estimates for typical portion sizes when unsure. Never refuse.`;
 
 function aiGateway() {
