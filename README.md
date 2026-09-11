@@ -1,29 +1,33 @@
 # Calorie Snap
 
-Mobile-first PWA that logs your food's calories & macros automatically. Snap a
-photo or describe a meal in the chat box; **Gemini 3.5 Flash (via Vercel AI
-Gateway)** estimates calories + protein/carbs/fat and appends it to your daily
-log.
+Mobile-first PWA that logs calories and macros from a photo or a short
+description. Gemini 3.8 Flash (via the Vercel AI Gateway) names the meal,
+picks a type, and estimates calories / protein / carbs / fat.
 
-- 📸 **Capture** — full-screen live camera, tap the shutter to log.
-- ✍️ **Manual** — chat box with a text description + photo upload.
-- 🔵 **Rings** — calorie & protein activity rings, with carbs/fat bars.
-- 🎯 **Goals** — TDEE-based targets (Mifflin-St Jeor) from your profile, with
-  manual overrides. Workout time tags meals as pre / post-workout.
-- 🍽️ **Auto-naming & meal type** — the AI names each meal and classifies it
-  (breakfast / lunch / dinner / snack / pre-workout…) from the time of day.
-- 📅 **History** — date picker to browse the log for any day.
-- ✏️ **Edit / delete** any entry.
-- 🔒 **Private** — a password prompt (`APP_PASSWORD` in `.env.local`) gates the
-  app. The cookie lasts 30 days; Lock on the dashboard clears it.
+## What it does
+
+- **Capture** — full-screen camera. Optional note rides with the photo.
+- **Manual** — type a description, attach a photo, or both. A photo is
+  uploaded only when you tap Log meal, not when you pick the file. If both
+  are present, the model gets both (photo first, note for portions and
+  hidden ingredients).
+- **Rings** — calories left and protein, plus carb and fat bars.
+- **Goals** — TDEE from your profile (Mifflin-St Jeor), with optional
+  overrides. Workout time tags meals as pre / post-workout.
+- **History** — date picker for any day.
+- **Edit / delete** any entry.
+- **Lock** — `APP_PASSWORD` in `.env.local`. Match it to enter. A signed
+  httpOnly cookie lasts 30 days. Lock on the dashboard clears it.
+
+This is a single shared log. No accounts.
 
 ## Stack
 
-- **Next.js 16** (App Router, TypeScript) + Tailwind v4 + shadcn/ui (Base UI)
-- **Convex** — reactive DB, file storage (meal photos), serverless actions
-- **Vercel AI SDK** + AI Gateway → `google/gemini-3.5-flash`
-  (vision + structured JSON) and `google/gemini-3.1-flash-image-preview`
-  for chat-meal thumbnails
+- Next.js 16 (App Router, TypeScript), Tailwind v4, shadcn/ui
+- Convex — DB, meal photo storage, Node 22 actions
+- Vercel AI SDK + AI Gateway
+  - `google/gemini-3.8-flash` — vision + structured JSON
+  - `google/gemini-3.1-flash-lite-image` — thumbnails for text-only logs
 
 ## Setup
 
@@ -31,53 +35,57 @@ log.
 pnpm install
 ```
 
-### 1. AI Gateway key
+### 1. Convex
 
-The key is read **inside Convex actions** (`convex/ai.ts`), which run on the
-Convex deployment — set it there, not only in `.env.local`:
+`pnpm dev` starts `convex dev` for you. It writes `NEXT_PUBLIC_CONVEX_URL`  
+(and a local site URL) into `.env.local`. For a local backend that is  
+usually `http://127.0.0.1:3210`.
+
+### 2. AI Gateway key
+
+Actions read this on Convex, not in the browser:
 
 ```bash
-npx convex env set AI_GATEWAY_API_KEY <key>   # Vercel dashboard → AI Gateway
+npx convex env set AI_GATEWAY_API_KEY <key>
 ```
 
-### 2. App password
+Get a key from the Vercel dashboard under AI Gateway.
 
-Set the gate password in `.env.local` (Next.js reads it on the server only):
+### 3. App password
+
+In `.env.local` (Next.js only, never `NEXT_PUBLIC_`):
 
 ```bash
 APP_PASSWORD=your-password
 ```
 
-The unlock screen compares what you type to this value. Wrong password stays
-locked. A signed httpOnly cookie keeps you in for 30 days.
+Wrong password stays on the lock screen. This gates the UI. Anyone who has
+the Convex URL can still call the backend.
 
-This is a UI gate. Convex functions are no longer behind an account, so anyone
-who has the Convex URL can still call them.
-
-### 3. Run
+### 4. Run
 
 ```bash
-pnpm dev          # Next + Convex together. App: http://localhost:3000
+pnpm dev
 ```
 
-`pnpm dev:next` and `pnpm dev:convex` still start each process on its own.
+App: [http://localhost:3000](http://localhost:3000)
 
-The AI runs server-side in Convex, so `AI_GATEWAY_API_KEY` is never exposed to
-the browser.
+`pnpm dev:next` and `pnpm dev:convex` start each process alone.
 
 ## Code map
 
-- `convex/schema.ts` — `meals` + `settings` tables.
-- `convex/ai.ts` — `analyzeImage` / `analyzeText` actions call the Vercel AI
-  Gateway, then write results via the internal `meals.insertMeal` mutation.
-- `convex/meals.ts` — `generateUploadUrl`, `listMeals`, `updateMeal`, `deleteMeal`.
-- `convex/settings.ts` — single-row profile/goals.
-- `src/lib/app-gate.ts` — password compare + signed unlock cookie.
-- `src/lib/targets.ts` — TDEE math + override resolution.
-- `src/lib/meals.ts` — day grouping, totals, macro split helpers.
-- `src/components/*` — rings, date nav (calendar), camera, manual entry, settings.
+- `convex/schema.ts` — `meals` + `settings` (one settings row).
+- `convex/ai.ts` — `analyzeImage` / `analyzeText` via the AI Gateway, then
+  `meals.insertMeal`. Optional `userNote` on photo analysis.
+- `convex/meals.ts` — upload URL, list, update, delete.
+- `convex/settings.ts` — profile and targets.
+- `src/lib/app-gate.ts` — password compare + unlock cookie.
+- `src/lib/targets.ts` — TDEE math and overrides.
+- `src/lib/meals.ts` — day grouping and totals.
+- `src/app/api/unlock` / `lock` — set and clear the cookie.
+- `src/components/*` — rings, date nav, camera, manual entry, settings.
 
 ## PWA
 
-Installable: web manifest + icons in `public/`, service worker (`public/sw.js`)
-registered in production. Add to Home Screen on iOS/Android for a standalone app.
+Manifest and icons in `public/`. `public/sw.js` registers in production.
+Add to Home Screen on iOS or Android for a standalone app.
