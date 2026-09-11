@@ -1,8 +1,9 @@
 # Calorie Snap
 
 Mobile-first PWA that logs your food's calories & macros automatically. Snap a
-photo or describe a meal in the chat box; **Gemini 3.5 Flash (via OpenRouter)**
-estimates calories + protein/carbs/fat and appends it to your daily log.
+photo or describe a meal in the chat box; **Gemini 3.5 Flash (via Vercel AI
+Gateway)** estimates calories + protein/carbs/fat and appends it to your daily
+log.
 
 - 📸 **Capture** — full-screen live camera, tap the shutter to log.
 - ✍️ **Manual** — chat box with a text description + photo upload.
@@ -13,15 +14,16 @@ estimates calories + protein/carbs/fat and appends it to your daily log.
   (breakfast / lunch / dinner / snack / pre-workout…) from the time of day.
 - 📅 **History** — date picker to browse the log for any day.
 - ✏️ **Edit / delete** any entry.
-- 🔒 **Private** — email + password login (Convex Auth), restricted to an
-  allowlisted email and enforced server-side, so the link alone exposes nothing.
+- 🔒 **Private** — a password prompt (`APP_PASSWORD` in `.env.local`) gates the
+  app. The cookie lasts 30 days; Lock on the dashboard clears it.
 
 ## Stack
 
 - **Next.js 16** (App Router, TypeScript) + Tailwind v4 + shadcn/ui (Base UI)
 - **Convex** — reactive DB, file storage (meal photos), serverless actions
-- **OpenRouter SDK** (`@openrouter/sdk`) → `google/gemini-3.5-flash`
-  (vision + structured JSON output)
+- **Vercel AI SDK** + AI Gateway → `google/gemini-3.5-flash`
+  (vision + structured JSON) and `google/gemini-3.1-flash-image-preview`
+  for chat-meal thumbnails
 
 ## Setup
 
@@ -29,50 +31,48 @@ estimates calories + protein/carbs/fat and appends it to your daily log.
 pnpm install
 ```
 
-### 1. OpenRouter key
+### 1. AI Gateway key
 
 The key is read **inside Convex actions** (`convex/ai.ts`), which run on the
-Convex deployment — so it must be set on Convex, not just in `.env.local`:
+Convex deployment — set it there, not only in `.env.local`:
 
 ```bash
-npx convex env set OPENROUTER_API_KEY sk-or-v1-xxxxx   # https://openrouter.ai/keys
+npx convex env set AI_GATEWAY_API_KEY <key>   # Vercel dashboard → AI Gateway
 ```
 
-`.env.local` holds Convex's own vars (managed by the CLI) plus an
-`OPENROUTER_API_KEY` placeholder for reference.
+### 2. App password
 
-### 2. Auth allowlist
-
-Login uses **Convex Auth** (password). `npx @convex-dev/auth` already set
-`SITE_URL`, `JWT_PRIVATE_KEY`, and `JWKS`. Restrict who can sign up by setting an
-email allowlist (enforced server-side in `convex/auth.ts`):
+Set the gate password in `.env.local` (Next.js reads it on the server only):
 
 ```bash
-npx convex env set ALLOWED_EMAILS you@example.com   # comma-separated for more
+APP_PASSWORD=your-password
 ```
 
-On first launch, open the app and **Sign up** with that email to create your
-account. Anyone else is rejected by the server.
+The unlock screen compares what you type to this value. Wrong password stays
+locked. A signed httpOnly cookie keeps you in for 30 days.
 
-### 3. Run (two processes)
+This is a UI gate. Convex functions are no longer behind an account, so anyone
+who has the Convex URL can still call them.
+
+### 3. Run
 
 ```bash
-npx convex dev    # backend: pushes functions, watches convex/
-pnpm dev          # frontend: http://localhost:3000
+pnpm dev          # Next + Convex together. App: http://localhost:3000
 ```
 
-The AI runs server-side in Convex, so `OPENROUTER_API_KEY` is never exposed to
+`pnpm dev:next` and `pnpm dev:convex` still start each process on its own.
+
+The AI runs server-side in Convex, so `AI_GATEWAY_API_KEY` is never exposed to
 the browser.
 
 ## Code map
 
 - `convex/schema.ts` — `meals` + `settings` tables.
-- `convex/ai.ts` — `analyzeImage` / `analyzeText` actions call OpenRouter, then
-  write results via the internal `meals.insertMeal` mutation.
+- `convex/ai.ts` — `analyzeImage` / `analyzeText` actions call the Vercel AI
+  Gateway, then write results via the internal `meals.insertMeal` mutation.
 - `convex/meals.ts` — `generateUploadUrl`, `listMeals`, `updateMeal`, `deleteMeal`.
 - `convex/settings.ts` — single-row profile/goals.
-- `convex/auth.ts` — Convex Auth (Password) with email allowlist. All `meals` /
-  `settings` functions require an authenticated user.
+- `src/lib/app-gate.ts` — password compare + signed unlock cookie.
 - `src/lib/targets.ts` — TDEE math + override resolution.
 - `src/lib/meals.ts` — day grouping, totals, macro split helpers.
 - `src/components/*` — rings, date nav (calendar), camera, manual entry, settings.

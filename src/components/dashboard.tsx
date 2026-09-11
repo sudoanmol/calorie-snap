@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
-import { useAuthActions } from "@convex-dev/auth/react";
-import { Camera, LogOut, PencilLine, Settings } from "lucide-react";
+import { Camera, Lock, PencilLine, Settings } from "lucide-react";
 import { api } from "../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -17,7 +17,7 @@ import { ManualEntry } from "@/components/manual-entry";
 import { SettingsDialog } from "@/components/settings-dialog";
 
 export function Dashboard() {
-  const { signOut } = useAuthActions();
+  const router = useRouter();
   const [day, setDay] = useState(dayKey());
   const [showCamera, setShowCamera] = useState(false);
   const [showManual, setShowManual] = useState(false);
@@ -56,10 +56,13 @@ export function Dashboard() {
             variant="ghost"
             size="icon"
             className="rounded-full text-muted-foreground"
-            onClick={() => signOut()}
-            aria-label="Sign out"
+            onClick={async () => {
+              await fetch("/api/lock", { method: "POST" });
+              router.refresh();
+            }}
+            aria-label="Lock"
           >
-            <LogOut className="size-5" />
+            <Lock className="size-5" />
           </Button>
         </div>
       </header>

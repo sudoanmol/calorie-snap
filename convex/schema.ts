@@ -1,6 +1,5 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
-import { authTables } from "@convex-dev/auth/server";
 
 export const macroFields = {
   calories: v.number(),
@@ -15,8 +14,6 @@ export const mealItem = v.object({
 });
 
 export default defineSchema({
-  ...authTables,
-
   meals: defineTable({
     name: v.string(), // short label, e.g. "Chicken burrito bowl"
     mealType: v.string(), // Breakfast | Lunch | Dinner | Afternoon snack | Late night snack | Pre-workout | Post-workout ...

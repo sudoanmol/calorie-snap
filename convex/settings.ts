@@ -1,12 +1,10 @@
 import { v } from "convex/values";
-import { getAuthUserId } from "@convex-dev/auth/server";
 import { mutation, query } from "./_generated/server";
 
 /** Returns the single settings/profile row, or null if not set up yet. */
 export const getSettings = query({
   args: {},
   handler: async (ctx) => {
-    if ((await getAuthUserId(ctx)) === null) return null;
     const row = await ctx.db.query("settings").first();
     if (!row) return null;
     const { _id, _creationTime, ...rest } = row;
@@ -42,7 +40,6 @@ export const updateSettings = mutation({
     fatOverride: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    if ((await getAuthUserId(ctx)) === null) throw new Error("Not authenticated");
     const existing = await ctx.db.query("settings").first();
     if (existing) {
       await ctx.db.replace(existing._id, args);

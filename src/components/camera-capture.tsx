@@ -10,6 +10,7 @@ export function CameraCapture({ onClose }: { onClose: () => void }) {
   const { logPhoto, pending } = useMealLogger();
   const [error, setError] = useState<string | null>(null);
   const [facing, setFacing] = useState<"environment" | "user">("environment");
+  const [note, setNote] = useState("");
 
   const start = useCallback(async () => {
     setError(null);
@@ -48,7 +49,7 @@ export function CameraCapture({ onClose }: { onClose: () => void }) {
     );
     if (!blob) return;
     try {
-      await logPhoto(blob);
+      await logPhoto(blob, note.trim() || undefined);
       onClose();
     } catch {
       /* toast already shown */
@@ -97,6 +98,15 @@ export function CameraCapture({ onClose }: { onClose: () => void }) {
         className="relative mt-auto flex flex-col items-center gap-3 pb-8"
         style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}
       >
+        <input
+          type="text"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="Add a note…"
+          disabled={pending}
+          enterKeyHint="done"
+          className="mb-1 w-[min(100%,20rem)] rounded-2xl border-0 bg-black/40 px-4 py-2.5 text-center text-sm text-white outline-none placeholder:text-white/50 backdrop-blur disabled:opacity-60"
+        />
         <p className="text-sm text-white/80">Point at your meal and tap to log</p>
         <button
           onClick={shoot}

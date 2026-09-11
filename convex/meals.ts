@@ -1,5 +1,4 @@
 import { v } from "convex/values";
-import { getAuthUserId } from "@convex-dev/auth/server";
 import { mutation, query, internalMutation } from "./_generated/server";
 import { macroFields, mealItem } from "./schema";
 
@@ -8,7 +7,6 @@ export const generateUploadUrl = mutation({
   args: {},
   returns: v.string(),
   handler: async (ctx) => {
-    if ((await getAuthUserId(ctx)) === null) throw new Error("Not authenticated");
     return await ctx.storage.generateUploadUrl();
   },
 });
@@ -17,7 +15,6 @@ export const generateUploadUrl = mutation({
 export const listMeals = query({
   args: {},
   handler: async (ctx) => {
-    if ((await getAuthUserId(ctx)) === null) return [];
     const meals = await ctx.db
       .query("meals")
       .withIndex("by_createdAt")
@@ -78,7 +75,6 @@ export const updateMeal = mutation({
     date: v.string(),
   },
   handler: async (ctx, { id, ...fields }) => {
-    if ((await getAuthUserId(ctx)) === null) throw new Error("Not authenticated");
     await ctx.db.patch(id, fields);
   },
 });
@@ -86,7 +82,6 @@ export const updateMeal = mutation({
 export const deleteMeal = mutation({
   args: { id: v.id("meals") },
   handler: async (ctx, { id }) => {
-    if ((await getAuthUserId(ctx)) === null) throw new Error("Not authenticated");
     const meal = await ctx.db.get(id);
     if (!meal) return;
     if (meal.imageStorageId) {

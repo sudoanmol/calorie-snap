@@ -30,7 +30,7 @@ export function ManualEntry({
     if (pending) return;
     try {
       if (photo) {
-        await logPhoto(photo);
+        await logPhoto(photo, text.trim() || undefined);
       } else if (text.trim()) {
         await logText(text.trim());
       } else {

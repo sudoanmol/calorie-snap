@@ -21,7 +21,7 @@ export function useMealLogger() {
     workoutTime: settings?.workoutTime || undefined,
   });
 
-  async function logPhoto(file: Blob) {
+  async function logPhoto(file: Blob, userNote?: string) {
     setPending(true);
     const t = toast.loading("Analyzing your meal…");
     try {
@@ -33,7 +33,12 @@ export function useMealLogger() {
       });
       if (!res.ok) throw new Error("Upload failed");
       const { storageId } = await res.json();
-      const meal = await analyzeImage({ storageId, ...now() });
+      const note = userNote?.trim();
+      const meal = await analyzeImage({
+        storageId,
+        ...now(),
+        userNote: note || undefined,
+      });
       toast.success(`Logged ${meal.name} · ${Math.round(meal.calories)} kcal`, {
         id: t,
       });

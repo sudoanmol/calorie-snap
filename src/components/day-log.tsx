@@ -17,8 +17,8 @@ export function DayLog({ meals }: { meals: Meal[] }) {
 
   return (
     <div className="flex flex-col gap-2.5">
-      {meals.map((meal) => (
-        <MealCard key={meal._id} meal={meal} />
+      {meals.map((meal, i) => (
+        <MealCard key={meal._id} meal={meal} eager={i === 0} />
       ))}
     </div>
   );

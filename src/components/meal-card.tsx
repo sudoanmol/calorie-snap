@@ -22,7 +22,13 @@ import {
 import { EditMealDialog } from "./edit-meal-dialog";
 import { toast } from "sonner";
 
-export function MealCard({ meal }: { meal: Meal }) {
+export function MealCard({
+  meal,
+  eager,
+}: {
+  meal: Meal;
+  eager?: boolean;
+}) {
   const deleteMeal = useMutation(api.meals.deleteMeal);
   const [editing, setEditing] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -43,6 +49,8 @@ export function MealCard({ meal }: { meal: Meal }) {
           height={72}
           className="size-18 shrink-0 rounded-xl object-cover"
           unoptimized
+          loading={eager ? "eager" : "lazy"}
+          fetchPriority={eager ? "high" : "auto"}
         />
       ) : (
         <div className="grid size-18 shrink-0 place-items-center rounded-xl bg-muted text-muted-foreground">

@@ -9,8 +9,6 @@
  */
 
 import type * as ai from "../ai.js";
-import type * as auth from "../auth.js";
-import type * as http from "../http.js";
 import type * as meals from "../meals.js";
 import type * as settings from "../settings.js";
 
@@ -22,8 +20,6 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   ai: typeof ai;
-  auth: typeof auth;
-  http: typeof http;
   meals: typeof meals;
   settings: typeof settings;
 }>;
